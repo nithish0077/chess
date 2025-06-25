@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chess vs Computer</title>
+
+  <!-- Chessboard and Chess.js libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard.min.css" rel="stylesheet"/>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f3f3;
+      text-align: center;
+      padding: 20px;
+    }
+    #board {
+      width: 400px;
+      margin: 20px auto;
+    }
+    .status, .score {
+      margin-top: 10px;
+      font-size: 18px;
+    }
+    .scoreboard {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      font-weight: bold;
+    }
+    .btn {
+      padding: 8px 20px;
+      font-size: 16px;
+      margin-top: 20px;
+      cursor: pointer;
+      background-color: #444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>♟️ Chess Game - You (White) vs Computer (Black) ♞</h1>
+  <div id="board"></div>
+  <div class="status" id="status">Your move</div>
+
+  <div class="scoreboard">
+    <div>👤 Player Wins: <span id="playerScore">0</span></div>
+    <div>🤖 Computer Wins: <span id="computerScore">0</span></div>
+    <div>⚖️ Draws: <span id="drawScore">0</span></div>
+  </div>
+
+  <button class="btn" onclick="resetGame()">🔄 New Game</button>
+
+  <script>
+    let game = new Chess();
+
+    let playerWins = 0;
+    let computerWins = 0;
+    let draws = 0;
+
+    let board = Chessboard('board', {
+      draggable: true,
+      position: 'start',
+      orientation: 'white', // Always white at bottom
+      onDrop: handleMove,
+    });
+
+    function handleMove(source, target) {
+      if (game.turn() !== 'w') return 'snapback'; // prevent moving computer pieces
+
+      const move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q'
+      });
+
+      if (move === null) return 'snapback';
+
+      updateStatus();
+      setTimeout(makeComputerMove, 600);
+    }
+
+    function makeComputerMove() {
+      if (game.game_over()) return;
+
+      const moves = game.moves();
+      const randomMove = moves[Math.floor(Math.random() * moves.length)];
+      game.move(randomMove);
+      board.position(game.fen());
+      updateStatus();
+    }
+
+    function updateStatus() {
+      let status = '';
+
+      if (game.in_checkmate()) {
+        if (game.turn() === 'w') {
+          status = '🤖 Computer wins!';
+          computerWins++;
+        } else {
+          status = '👤 You win!';
+          playerWins++;
+        }
+        updateScore();
+      } else if (game.in_draw()) {
+        status = '⚖️ Draw!';
+        draws++;
+        updateScore();
+      } else {
+        status = (game.turn() === 'w') ? "Your move (White)" : "Computer's move (Black)";
+      }
+
+      document.getElementById('status').textContent = status;
+    }
+
+    function updateScore() {
+      document.getElementById('playerScore').textContent = playerWins;
+      document.getElementById('computerScore').textContent = computerWins;
+      document.getElementById('drawScore').textContent = draws;
+    }
+
+    function resetGame() {
+      game.reset();
+      board.start();
+      document.getElementById('status').textContent = 'Your move (White)';
+    }
+  </script>
+</body>
+</html>
